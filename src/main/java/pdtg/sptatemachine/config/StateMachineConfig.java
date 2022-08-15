@@ -46,7 +46,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
         StateMachineListenerAdapter<PaymentState, PaymentEvent> adapter = new StateMachineListenerAdapter<PaymentState, PaymentEvent>(){
             @Override
             public void stateChanged(State from, State to){
-                log.info(String.format("stateChanged(from: %s, to: %s",from,to));
+                log.info(String.format("stateChanged(from: %s, to: %s",from == null ? "null" : from.getId(),to.getId()));
             }
         };
         config.withConfiguration().listener(adapter);

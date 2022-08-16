@@ -7,11 +7,13 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pdtg.sptatemachine.domain.Payment;
 import pdtg.sptatemachine.domain.PaymentEvent;
 import pdtg.sptatemachine.domain.PaymentState;
 import pdtg.sptatemachine.repository.PaymentRepository;
 import reactor.core.publisher.Mono;
+
 
 /**
  * Created by Diego T. 14-08-2022
@@ -33,26 +35,29 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(payment);
     }
 
+    @Transactional
     @Override
     public StateMachine<PaymentState, PaymentEvent> preAuth(Long paymentId) {
         StateMachine<PaymentState,PaymentEvent> sm = build(paymentId);
 
-        sendEvent(paymentId,sm,PaymentEvent.PRE_AUTHORIZE);
-        return null;
+        sendEvent(paymentId,sm,PaymentEvent.PRE_AUTH_APPROVED);
+        return sm;
     }
 
+    @Transactional
     @Override
     public StateMachine<PaymentState, PaymentEvent> authorizePayment(Long paymentId) {
         StateMachine<PaymentState,PaymentEvent> sm = build(paymentId);
         sendEvent(paymentId,sm,PaymentEvent.PRE_AUTH_APPROVED);
-        return null;
+        return sm;
     }
 
+    @Transactional
     @Override
     public StateMachine<PaymentState, PaymentEvent> declineAuth(Long paymentId) {
         StateMachine<PaymentState,PaymentEvent> sm = build(paymentId);
         sendEvent(paymentId,sm,PaymentEvent.PRE_AUTH_DECLINED);
-        return null;
+        return sm;
     }
 
     private void sendEvent(Long paymentId,StateMachine<PaymentState,PaymentEvent> sm, PaymentEvent event){

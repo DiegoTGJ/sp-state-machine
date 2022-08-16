@@ -23,13 +23,12 @@ class StateMachineConfigTest {
         StateMachine<PaymentState, PaymentEvent> sm = factory.getStateMachine(UUID.randomUUID());
 
         sm.startReactively().subscribe();
+        sendEvent(sm,PaymentEvent.PRE_AUTHORIZE);
+        sendEvent(sm,PaymentEvent.PRE_AUTH_APPROVED);
 
+    }
 
-        sm.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTHORIZE).build())).subscribe();
-
-
-        sm.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTH_APPROVED).build())).subscribe();
-
-
+    private void sendEvent(StateMachine<PaymentState,PaymentEvent> sm,PaymentEvent paymentEvent){
+        sm.sendEvent(Mono.just(MessageBuilder.withPayload(paymentEvent).build())).subscribe();
     }
 }

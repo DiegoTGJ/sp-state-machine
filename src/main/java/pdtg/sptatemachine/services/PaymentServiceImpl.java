@@ -40,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     public StateMachine<PaymentState, PaymentEvent> preAuth(Long paymentId) {
         StateMachine<PaymentState,PaymentEvent> sm = build(paymentId);
 
-        sendEvent(paymentId,sm,PaymentEvent.PRE_AUTH_APPROVED);
+        sendEvent(paymentId,sm,PaymentEvent.PRE_AUTHORIZE);
         return sm;
     }
 
@@ -60,6 +60,13 @@ public class PaymentServiceImpl implements PaymentService {
         return sm;
     }
 
+    @Transactional
+    @Override
+    public StateMachine<PaymentState, PaymentEvent> approveAuth(Long paymentId){
+        StateMachine<PaymentState,PaymentEvent> sm = build(paymentId);
+        sendEvent(paymentId,sm,PaymentEvent.AUTHORIZE);
+        return sm;
+    }
     private void sendEvent(Long paymentId,StateMachine<PaymentState,PaymentEvent> sm, PaymentEvent event){
         Message<PaymentEvent> msg = MessageBuilder.withPayload(event)
                 .setHeader(PAYMENT_ID_HEADER,paymentId)

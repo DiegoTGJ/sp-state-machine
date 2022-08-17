@@ -1,6 +1,7 @@
 package pdtg.sptatemachine.services;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,5 +37,18 @@ class PaymentServiceImplTest {
         Payment preAuthPayment = paymentRepository.getReferenceById(savedPayment.getId());
 
         System.out.println(preAuthPayment);
+    }
+
+//    @Test
+    @Transactional
+    @RepeatedTest(10)
+    void approveAuth() {
+        Payment savedPayment = paymentService.newPayment(payment);
+        paymentService.preAuth(savedPayment.getId());
+        paymentService.approveAuth(savedPayment.getId());
+
+        Payment authApprovedPayment = paymentRepository.getReferenceById(savedPayment.getId());
+
+        System.out.println(authApprovedPayment);
     }
 }

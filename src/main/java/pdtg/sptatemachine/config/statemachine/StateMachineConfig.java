@@ -1,5 +1,6 @@
-package pdtg.sptatemachine.config;
+package pdtg.sptatemachine.config.statemachine;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
@@ -9,19 +10,26 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
+import pdtg.sptatemachine.config.statemachine.actions.StateMachineActions;
+import pdtg.sptatemachine.config.statemachine.guards.StateMachineGuards;
 import pdtg.sptatemachine.domain.PaymentEvent;
 import pdtg.sptatemachine.domain.PaymentState;
 
+
 import java.util.EnumSet;
+
 
 /**
  * Created by Diego T. 07-08-2022
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 @EnableStateMachineFactory
 public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentState, PaymentEvent> {
 
+    private final StateMachineActions stateMachineActions;
+    private final StateMachineGuards stateMachineGuards;
     @Override
     public void configure(StateMachineStateConfigurer<PaymentState, PaymentEvent> states) throws Exception {
         states.withStates()
@@ -35,10 +43,17 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
     @Override
     public void configure(StateMachineTransitionConfigurer<PaymentState, PaymentEvent> transitions) throws Exception {
         transitions.withExternal().source(PaymentState.NEW).target(PaymentState.NEW).event(PaymentEvent.PRE_AUTHORIZE)
+                .action(stateMachineActions.preAuthAction()).guard(stateMachineGuards.paymentIdGuard())
                 .and()
-                .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTH_APPROVED)
+                .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTH_APPROVED).action(stateMachineActions.preAuthApproved())
                 .and()
-                .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH_ERROR).event(PaymentEvent.PRE_AUTH_DECLINED);
+                .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH_ERROR).event(PaymentEvent.PRE_AUTH_DECLINED).action(stateMachineActions.preAuthDeclinedAction())
+                .and()
+                .withExternal().source(PaymentState.PRE_AUTH).target(PaymentState.PRE_AUTH).event(PaymentEvent.AUTHORIZE).action(stateMachineActions.authAction())
+                .and()
+                .withExternal().source(PaymentState.PRE_AUTH).target(PaymentState.AUTH_ERROR).event(PaymentEvent.AUTH_DECLINED).action(stateMachineActions.authDeclinedAction())
+                .and()
+                .withExternal().source(PaymentState.PRE_AUTH).target(PaymentState.AUTH).event(PaymentEvent.AUTH_APPROVED).action(stateMachineActions.authApprovedAction());
     }
 
     @Override
